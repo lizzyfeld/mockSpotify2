@@ -1,11 +1,12 @@
-import { StyleSheet, Text, SafeAreaView, Image, Pressable, FlatList } from "react-native";
+import { StyleSheet, Text, SafeAreaView, Image, Pressable, FlatList, View} from "react-native";
 import { useState, useEffect } from "react";
 import { ResponseType, useAuthRequest } from "expo-auth-session";
 import { albumTracks } from "./utils/apiOptions";
 import { REDIRECT_URI, SCOPES, CLIENT_ID, ALBUM_ID } from "./utils/constants";
 import Colors from "./Themes/colors"
-//import { FlatList } from "react-native-web";
+import millisToMinutesAndSeconds from "./utils/millisToMinuteSeconds";
 import Song from "./utils/Song"
+import { logToConsole } from "react-native/Libraries/Utilities/RCTLog";
 // TODO: import spotify button
 
 // Endpoints for authorizing with Spotify
@@ -43,22 +44,49 @@ export default function App() {
   }
   
   function SongList() {
-    console.log(tracks)
     return (
       <FlatList
           data={tracks} // the array of data that the FlatList displays
-          renderItem={({item}) => renderItem(item)} // function that renders each item
+          renderItem={({item, index}) => renderItem(item, index)} // function that renders each item
           keyExtractor={(item) => item.id} // unique key for each item
       />
     );
   }
 
-  const renderItem = (item) => (
+  function SongListView() {
+    return (
+      <SafeAreaView style={styles.songListContainer}>
+        <View style={styles.header}>
+          <Image
+              source={require("./assets/spotify-logo.png")}
+              style={styles.buttonImageIconStyle}
+          />
+          <Text style={styles.myTopTracks}>My Top Tracks</Text>
+        </View>
+        <SongList/>
+      </SafeAreaView>
+    );
+  }
+
+  function SpotifyAuthButtonView() {
+    return (
+      <SafeAreaView style={styles.spotifyAuthContainer}>
+        <SpotifyAuthButton/>
+      </SafeAreaView>
+    );
+  }
+
+  const renderItem = (item, index) => (
     <Song
       id={item.id}
+      idx={index + 1}
       songName={item.name}
-      imageUrl={item.imageUrl} />
-  );
+      artist={item.artists[0].name}
+      albumName={item.album.name}
+      img={item.album.images[0].url}
+      duration={millisToMinutesAndSeconds(item.duration_ms)}
+    />
+  ); 
 
   useEffect(() => {
     if (response?.type === "success") {
@@ -73,26 +101,32 @@ export default function App() {
     }
   }, [token]);
 
-  let contentDisplayed = null;
-
   if (token) {
-    contentDisplayed = <SongList/>
+    return (
+      <SafeAreaView style={styles.songListContainer}>
+        <SongListView/>
+      </SafeAreaView>
+    );
   } else {
-    contentDisplayed = <SpotifyAuthButton/>
+    return (
+      <SafeAreaView style={styles.spotifyAuthContainer}>
+        <SpotifyAuthButtonView/>
+      </SafeAreaView>
+    );
   }
-
-  return (
-    <SafeAreaView style={styles.container}>
-      {contentDisplayed}
-    </SafeAreaView>
-  );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  spotifyAuthContainer: {
     backgroundColor: Colors.background,
     justifyContent: "center",
     alignItems: "center",
+    flex: 1
+  },
+  songListContainer: {
+    backgroundColor: Colors.background,
+    // justifyContent: "center",
+    // alignItems: "center",
     flex: 1
   },
   buttonImageIconStyle: {
@@ -111,5 +145,16 @@ const styles = StyleSheet.create({
   spotifyButtonText: {
     marginRight: '3%',
     color: 'white',
+  },
+  myTopTracks: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 24,
+  },
+  header: {
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: 'row',
+    height: '7%',
   }
 });

@@ -1,26 +1,38 @@
 
-import { StyleSheet, Text, View, Image } from "react-native";
+import { StyleSheet, Text, View, Image, Pressable } from "react-native";
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import Colors from "../Themes/colors"
 
-export default function Song({ id, songName, artist, albumName, idx, img, duration}) {
+export default function Song({ songName, artist, albumName, img, duration, item }) {
+    const navigation = useNavigation();
+    
     return (
-      <View style={styles.container}>
-          <View style={styles.indexContainer}>
-            <Text style={styles.songTitleAndArtist}>{idx}</Text>
-          </View>
-          <View style={styles.imageContainer}>
-            <Image source={{uri: img}} style={styles.imageStyle}/> 
-          </View>
-          <View style={styles.titleAndArtistContainer}>
-            <Text style={[styles.songTitleAndArtist, {fontWeight: 'bold'}]} numberOfLines={1}>{songName}</Text>
-            <Text style={styles.songTitleAndArtist} numberOfLines={1}>{artist}</Text>
-          </View>
-          <View style={styles.albumNameConainer}>
-            <Text style={styles.songTitleAndArtist} numberOfLines={1}>{albumName}</Text>
-          </View>
-          <View style={styles.durationContainer}>
-            <Text style={{color: 'white', margin: '1%'}}>{duration}</Text>
-          </View>
-      </View>
+      <Pressable onPress={() => navigation.navigate('DetailedSongScreen', {externalURLParam: item.external_urls.spotify})}> 
+        <View style={styles.container}> 
+            <View style={styles.indexContainer}>
+              <Pressable onPress={(e) => {
+                e.stopPropagation()
+                navigation.navigate('PreviewSongScreen', {previewURLParam:  item.preview_url})
+                }}> 
+                <Ionicons name="play-circle" size={32} color={Colors.spotify} />
+              </Pressable>
+            </View>
+            <View style={styles.imageContainer}>
+              <Image source={{uri: img}} style={styles.imageStyle}/> 
+            </View>
+            <View style={styles.titleAndArtistContainer}>
+              <Text style={[styles.songTitleAndArtist, {fontWeight: 'bold'}]} numberOfLines={1}>{songName}</Text>
+              <Text style={styles.songTitleAndArtist} numberOfLines={1}>{artist}</Text>
+            </View>
+            <View style={styles.albumNameConainer}>
+              <Text style={styles.songTitleAndArtist} numberOfLines={1}>{albumName}</Text>
+            </View>
+            <View style={styles.durationContainer}>
+              <Text style={{color: 'white', margin: '1%'}}>{duration}</Text>
+            </View>
+        </View>
+      </Pressable>
     );
 }
 
@@ -32,16 +44,16 @@ const styles = StyleSheet.create({
         margin: '1%',
     },
     imageContainer: {
-        backgroundColor: 'white',
         width: '20%',
         flex: 2,
         alignItems: 'center',
         justifyContent: 'center',
     },
     imageStyle: {
-        height: '100%',
-        width: '100%',
-        //resizeMode: 'contain'
+        height: undefined,
+        width: "100%",
+        aspectRatio: 1,
+        resizeMode: 'contain'
     },
     songTitleAndArtist: {
         color: 'white',

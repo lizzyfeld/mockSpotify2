@@ -6,14 +6,19 @@ import { REDIRECT_URI, SCOPES, CLIENT_ID, ALBUM_ID } from "./utils/constants";
 import Colors from "./Themes/colors"
 import millisToMinutesAndSeconds from "./utils/millisToMinuteSeconds";
 import Song from "./utils/Song"
-import { logToConsole } from "react-native/Libraries/Utilities/RCTLog";
-// TODO: import spotify button
+import { createStackNavigator } from '@react-navigation/stack';
+import PreviewSongScreen from "./PreviewSongScreen";
+import DetailedSongScreen from "./DetailedSongScreen";
+import { NavigationContainer } from '@react-navigation/native';
+import { HeaderBackButton } from '@react-navigation/stack';
 
 // Endpoints for authorizing with Spotify
 const discovery = {
   authorizationEndpoint: "https://accounts.spotify.com/authorize",
   tokenEndpoint: "https://accounts.spotify.com/api/token"
 };
+
+const Stack = createStackNavigator(); 
 
 export default function App() {
   const [token, setToken] = useState("");
@@ -44,6 +49,7 @@ export default function App() {
   }
   
   function SongList() {
+    // console.log("here!" + tracks[0].artists[0].external_urls.spotify);
     return (
       <FlatList
           data={tracks} // the array of data that the FlatList displays
@@ -85,6 +91,7 @@ export default function App() {
       albumName={item.album.name}
       img={item.album.images[0].url}
       duration={millisToMinutesAndSeconds(item.duration_ms)}
+      item={item}
     />
   ); 
 
@@ -103,9 +110,21 @@ export default function App() {
 
   if (token) {
     return (
-      <SafeAreaView style={styles.songListContainer}>
-        <SongListView/>
-      </SafeAreaView>
+      <NavigationContainer>
+        <Stack.Navigator>
+          <Stack.Screen options={{headerShown: false}} name="songList" component={SongListView}/>
+          <Stack.Screen options={{title: 'Song Preview',
+                        headerTitleStyle: {color: 'white'},
+                        headerStyle: {backgroundColor: 'black'}}} 
+                        name="PreviewSongScreen" 
+                        component={PreviewSongScreen} />
+          <Stack.Screen options={{title: 'Song Details',
+                        headerTitleStyle: {color: 'white'}, 
+                        headerStyle: {backgroundColor: 'black'}}} 
+                        name="DetailedSongScreen" 
+                        component={DetailedSongScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
     );
   } else {
     return (
@@ -125,8 +144,6 @@ const styles = StyleSheet.create({
   },
   songListContainer: {
     backgroundColor: Colors.background,
-    // justifyContent: "center",
-    // alignItems: "center",
     flex: 1
   },
   buttonImageIconStyle: {
